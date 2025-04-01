@@ -270,11 +270,11 @@ export class JsonServer {
    * @param routesPath - Path to the routes configuration file
    * @returns This server instance for chaining
    */
-  loadRoutes(routesPath: string): JsonServer {
+  async loadRoutes(routesPath: string): Promise<JsonServer> {
     const fullPath = path.resolve(routesPath);
 
     try {
-      this.routes = parseRoutesFile(fullPath);
+      this.routes = (await parseRoutesFile(fullPath)) as RoutesConfig;
 
       if (!this.options.quiet) {
         const routeCount = Object.keys(this.routes).length;
@@ -635,7 +635,7 @@ export class JsonServer {
         error: 'Internal server error',
         message: err.message || 'An unexpected error occurred',
       });
-    }) as RequestHandler);
+    }) as unknown as RequestHandler);
 
     // Start the server
     return new Promise((resolve, reject) => {
