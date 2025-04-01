@@ -271,4 +271,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgements
 
-This project is inspired by the original [json-server](https://github.com/webmasterdevlin/json-server) by webmasterdevlin, rewritten in TypeScript with additional features and improvements.
+This project is inspired by the original [json-server](https://github.com/typicode/json-server) by webmasterdevlin, rewritten in TypeScript with additional features and improvements.
