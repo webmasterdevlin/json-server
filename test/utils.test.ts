@@ -210,13 +210,13 @@ describe('Utils Functions', () => {
       if (fs.existsSync(routesJsPath)) fs.unlinkSync(routesJsPath);
     });
 
-    it('should parse JSON routes file correctly', () => {
-      const result = utils.parseRoutesFile(routesJsonPath);
+    it('should parse JSON routes file correctly', async () => {
+      const result = await utils.parseRoutesFile(routesJsonPath);
       expect(result).toEqual(routesConfig);
     });
 
-    it('should return empty object for non-existing file', () => {
-      const result = utils.parseRoutesFile('/not/existing/routes.json');
+    it('should return empty object for non-existing file', async () => {
+      const result = await utils.parseRoutesFile('/not/existing/routes.json');
       expect(result).toEqual({});
     });
   });
