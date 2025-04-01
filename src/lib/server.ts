@@ -135,6 +135,65 @@ export class JsonServer {
   }
 
   /**
+   * Get paginated resources from a collection
+   *
+   * @param resourceName - Name of the resource collection
+   * @param page - Current page number (default: 1)
+   * @param pageSize - Number of items per page (default: 10)
+   * @returns Object containing paginated data and metadata
+   */
+  getPaginatedResource(
+    resourceName: string,
+    page: number = 1,
+    pageSize: number = 10
+  ): Record<string, any> {
+    if (!this.db[resourceName]) {
+      return {
+        data: [],
+        pagination: {
+          currentPage: page,
+          pageSize,
+          totalItems: 0,
+          totalPages: 0,
+          hasMore: false,
+        },
+      };
+    }
+
+    const collection = this.db[resourceName];
+    const totalItems = collection.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+
+    const data = collection.slice(start, end);
+
+    return {
+      data,
+      pagination: {
+        currentPage: page,
+        pageSize,
+        totalItems,
+        totalPages,
+        hasMore: this.continueToIterate(page, pageSize, totalItems),
+      },
+    };
+  }
+
+  /**
+   * Determines if pagination should continue to next page
+   *
+   * @param currentPage - Current page number
+   * @param pageSize - Items per page
+   * @param totalItems - Total number of items
+   * @returns Boolean indicating if there are more pages to iterate
+   */
+  continueToIterate(currentPage: number, pageSize: number, totalItems: number): boolean {
+    return currentPage * pageSize < totalItems;
+  }
+
+  /**
    * Load database from JSON file
    *
    * @param dbPath - Path to the database JSON file
@@ -264,6 +323,16 @@ export class JsonServer {
     // Get entire database
     this.app.get('/db', ((req: Request, res: Response) => {
       res.json(this.db);
+    }) as RequestHandler);
+
+    // Get paginated results for a resource
+    this.app.get('/:resource/paginate', ((req: Request, res: Response) => {
+      const { resource } = req.params;
+      const page = parseInt(req.query._page as string) || 1;
+      const pageSize = parseInt(req.query._limit as string) || 10;
+
+      const paginatedResult = this.getPaginatedResource(resource, page, pageSize);
+      res.json(paginatedResult);
     }) as RequestHandler);
 
     // Get all entries for a resource
