@@ -1,0 +1,14 @@
+{
+  "/api/profile": {
+    "GET": "/users/1"
+  },
+  "/api/featured-post": {
+    "GET": "/posts/1"
+  },
+  "/api/users/:id/posts": {
+    "GET": "/posts?userId=:id"
+  },
+  "/api/posts/:id/comments": {
+    "GET": "/comments?postId=:id"
+  }
+}

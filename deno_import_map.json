@@ -1,0 +1,11 @@
+{
+  "imports": {
+    "@webmasterdevlin/json-server": "npm:@webmasterdevlin/json-server",
+    "express": "npm:express@5.1.0",
+    "body-parser": "npm:body-parser@2.2.0",
+    "cors": "npm:cors@2.8.5",
+    "lowdb": "npm:lowdb@7.0.1",
+    "nanoid": "npm:nanoid@3.3.4",
+    "minimist": "npm:minimist@1.2.8"
+  }
+}

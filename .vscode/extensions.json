@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-typescript-next",
+    "github.vscode-github-actions",
+    "orta.vscode-jest",
+    "editorconfig.editorconfig",
+    "mikestead.dotenv",
+    "ms-azuretools.vscode-docker",
+    "yoavbls.pretty-ts-errors"
+  ]
+}
