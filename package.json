@@ -1,6 +1,6 @@
 {
   "name": "@webmasterdevlin/json-server",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A TypeScript implementation of json-server with additional features",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -98,7 +98,7 @@
   },
   "packageManager": "npm@10.2.4 || pnpm@8.15.4 || yarn@4.2.0 || bun@1.0.25",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "exports": {
     ".": {
