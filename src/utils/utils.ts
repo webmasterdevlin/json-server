@@ -72,10 +72,9 @@ export function saveJsonFile(filePath: string, data: unknown): void {
 /**
  * Generate a unique ID string
  *
- * @param idField - Field name to use as ID (unused but kept for interface consistency)
  * @returns A unique string ID
  */
-export function generateId(idField: string = 'id'): string {
+export function generateId(): string {
   // nanoid produces a more secure, collision-resistant ID than simple random strings
   return nanoid(10);
 }
@@ -224,7 +223,7 @@ export function deleteResource(
  * @param routesPath - Path to routes configuration file
  * @returns Routes configuration object or empty object if file can't be parsed
  */
-export function parseRoutesFile(routesPath: string): Record<string, any> {
+export async function parseRoutesFile(routesPath: string): Promise<Record<string, any>> {
   if (!fileExists(routesPath)) {
     console.error(`Routes file not found: ${routesPath}`);
     return {};
@@ -235,11 +234,12 @@ export function parseRoutesFile(routesPath: string): Record<string, any> {
       return loadJsonFile(routesPath);
     } else if (routesPath.endsWith('.js')) {
       try {
-        return require(path.resolve(routesPath));
-      } catch (requireError) {
+        const module = await import(path.resolve(routesPath));
+        return module.default || module;
+      } catch (importError) {
         const errorMessage =
-          requireError instanceof Error ? requireError.message : String(requireError);
-        throw new Error(`Error requiring routes file: ${errorMessage}`);
+          importError instanceof Error ? importError.message : String(importError);
+        throw new Error(`Error importing routes file: ${errorMessage}`);
       }
     } else {
       throw new Error(`Unsupported routes file format: ${routesPath}`);

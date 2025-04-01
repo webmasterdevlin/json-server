@@ -1,4 +1,4 @@
-import cors, { CorsOptions, CorsRequest } from 'cors';
+import cors, { CorsOptions } from 'cors';
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 
 /**
@@ -34,7 +34,7 @@ export interface CorsConfig {
 export function corsMiddleware(enableCors: boolean | CorsConfig = true): RequestHandler {
   // If CORS is disabled, return a pass-through middleware
   if (enableCors === false) {
-    return (req: Request, res: Response, next: NextFunction): void => {
+    return (_req: Request, _res: Response, next: NextFunction): void => {
       next();
     };
   }
@@ -53,7 +53,7 @@ export function corsMiddleware(enableCors: boolean | CorsConfig = true): Request
 
     // Return pass-through middleware if explicitly disabled via config object
     if (config.enabled === false) {
-      return (req: Request, res: Response, next: NextFunction): void => {
+      return (_req: Request, _res: Response, next: NextFunction): void => {
         next();
       };
     }

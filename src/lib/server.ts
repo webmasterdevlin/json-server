@@ -629,13 +629,13 @@ export class JsonServer {
     }) as RequestHandler);
 
     // Handle server errors (500)
-    this.app.use(((err: Error, req: Request, res: Response, next: NextFunction) => {
+    this.app.use(((err: Error, req: Request, res: Response, _next: NextFunction) => {
       console.error('Server error:', err);
       res.status(500).json({
         error: 'Internal server error',
         message: err.message || 'An unexpected error occurred',
       });
-    }) as unknown as RequestHandler);
+    }) as RequestHandler);
 
     // Start the server
     return new Promise((resolve, reject) => {
