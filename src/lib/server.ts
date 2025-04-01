@@ -241,10 +241,11 @@ export class JsonServer {
    * @returns Boolean indicating if there are more pages to iterate
    */
   continueToIterate(currentPage: number, pageSize: number, totalItems: number): boolean {
-    // The pagination should continue if there are still more items to display
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return endIndex < totalItems;
+    // Calculate total number of pages
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    // Check if current page is less than total pages
+    return currentPage < totalPages;
   }
 
   /**
@@ -394,20 +395,31 @@ export class JsonServer {
       const { resource } = req.params;
       const resourceData = this.db[resource] || [];
 
-      // Handle query parameters for filtering
+      // Filter data based on non-pagination query parameters first
+      let filteredData = [...resourceData];
       if (Object.keys(req.query).length > 0) {
-        const filteredData = resourceData.filter((item) => {
+        filteredData = resourceData.filter((item) => {
           return Object.entries(req.query).every(([key, value]) => {
-            // Skip special query parameters like _page, _limit, _sort
+            // Skip special query parameters like _page, _per_page, _sort
             if (key.startsWith('_')) return true;
             return String(item[key]) === String(value);
           });
         });
-
-        return res.json(filteredData);
       }
 
-      res.json(resourceData);
+      // Handle pagination
+      const pageParam = req.query._page;
+      const perPageParam = req.query._per_page;
+
+      if (pageParam !== undefined || perPageParam !== undefined) {
+        const page = pageParam ? parseInt(pageParam as string) : 1;
+        const perPage = perPageParam ? parseInt(perPageParam as string) : 10;
+
+        // Apply pagination and return the paginated result
+        return res.json(this.getPaginatedData(filteredData, page, perPage));
+      }
+
+      res.json(filteredData);
     }) as RequestHandler);
 
     // Get single entry by ID
