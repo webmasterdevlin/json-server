@@ -53,9 +53,9 @@ Create a `db.json` file:
 
 ```json
 {
-  "posts": [{ "id": 1, "title": "json-server", "author": "typicode" }],
+  "posts": [{ "id": 1, "title": "json-server", "author": "webmasterdevlin" }],
   "comments": [{ "id": 1, "body": "some comment", "postId": 1 }],
-  "profile": { "name": "typicode" }
+  "profile": { "name": "webmasterdevlin" }
 }
 ```
 
@@ -78,7 +78,7 @@ Or use it from your package.json scripts:
 Now if you go to http://localhost:3000/posts/1, you'll get:
 
 ```json
-{ "id": 1, "title": "json-server", "author": "typicode" }
+{ "id": 1, "title": "json-server", "author": "webmasterdevlin" }
 ```
 
 ### API Usage
@@ -191,7 +191,7 @@ Options:
 Use query parameters for filtering:
 
 ```
-GET /posts?title=json-server&author=typicode
+GET /posts?title=json-server&author=webmasterdevlin
 GET /posts?id=1&id=2
 ```
 
@@ -210,7 +210,7 @@ import { create } from '@webmasterdevlin/json-server';
 
 // Database object
 const data = {
-  posts: [{ id: 1, title: 'json-server', author: 'typicode' }],
+  posts: [{ id: 1, title: 'json-server', author: 'webmasterdevlin' }],
   comments: [{ id: 1, body: 'some comment', postId: 1 }],
 };
 
@@ -271,4 +271,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgements
 
-This project is inspired by the original [json-server](https://github.com/typicode/json-server) by typicode, rewritten in TypeScript with additional features and improvements.
+This project is inspired by the original [json-server](https://github.com/webmasterdevlin/json-server) by webmasterdevlin, rewritten in TypeScript with additional features and improvements.
