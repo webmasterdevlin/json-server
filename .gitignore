@@ -78,3 +78,5 @@ dev-db.json
 # Generated files
 *.js.map
 *.d.ts.map
+
+.zshrc
