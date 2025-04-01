@@ -135,6 +135,57 @@ export class JsonServer {
   }
 
   /**
+   * Creates pagination metadata based on request parameters
+   *
+   * @param total - Total number of items
+   * @param page - Current page number
+   * @param perPage - Items per page
+   * @returns Pagination metadata with first, prev, next, last, pages, and items
+   */
+  private createPaginationMetadata(
+    total: number,
+    page: number,
+    perPage: number
+  ): Record<string, any> {
+    const totalPages = Math.ceil(total / perPage);
+
+    return {
+      first: 1,
+      prev: page > 1 ? page - 1 : null,
+      next: page < totalPages ? page + 1 : null,
+      last: totalPages || 1,
+      pages: totalPages || 1,
+      items: total,
+    };
+  }
+
+  /**
+   * Get paginated data with metadata
+   *
+   * @param collection - Data collection to paginate
+   * @param page - Current page number (default: 1)
+   * @param perPage - Items per page (default: 10)
+   * @returns Object with pagination metadata and data
+   */
+  private getPaginatedData(
+    collection: any[],
+    page: number = 1,
+    perPage: number = 10
+  ): Record<string, any> {
+    const total = collection.length;
+    const start = (page - 1) * perPage;
+    const end = Math.min(start + perPage, total);
+    const data = collection.slice(start, end);
+
+    const paginationMeta = this.createPaginationMetadata(total, page, perPage);
+
+    return {
+      ...paginationMeta,
+      data,
+    };
+  }
+
+  /**
    * Get paginated resources from a collection
    *
    * @param resourceName - Name of the resource collection
@@ -190,7 +241,10 @@ export class JsonServer {
    * @returns Boolean indicating if there are more pages to iterate
    */
   continueToIterate(currentPage: number, pageSize: number, totalItems: number): boolean {
-    return currentPage * pageSize < totalItems;
+    // The pagination should continue if there are still more items to display
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return endIndex < totalItems;
   }
 
   /**

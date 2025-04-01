@@ -79,4 +79,23 @@ describe('JsonServer', () => {
       expect(server.setIdField('_id')).toBe(server);
     });
   });
+
+  describe('pagination methods', () => {
+    it('should determine if pagination should continue', () => {
+      // Should continue - more pages available
+      expect(server.continueToIterate(1, 10, 25)).toBe(true);
+
+      // Should continue - exactly one more page
+      expect(server.continueToIterate(1, 10, 20)).toBe(true);
+
+      // Should not continue - on last page
+      expect(server.continueToIterate(2, 10, 20)).toBe(false);
+
+      // Should not continue - on last page with incomplete items
+      expect(server.continueToIterate(3, 10, 25)).toBe(false);
+
+      // Edge case - single page
+      expect(server.continueToIterate(1, 20, 15)).toBe(false);
+    });
+  });
 });
