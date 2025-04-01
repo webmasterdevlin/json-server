@@ -172,6 +172,10 @@ export class JsonServer {
     page: number = 1,
     perPage: number = 10
   ): Record<string, any> {
+    // Ensure valid page and perPage values
+    page = Math.max(1, page);
+    perPage = Math.max(1, perPage);
+    
     const total = collection.length;
     const start = (page - 1) * perPage;
     const end = Math.min(start + perPage, total);
@@ -400,7 +404,7 @@ export class JsonServer {
       if (Object.keys(req.query).length > 0) {
         filteredData = resourceData.filter((item) => {
           return Object.entries(req.query).every(([key, value]) => {
-            // Skip special query parameters like _page, _per_page, _sort
+            // Skip special query parameters like _page, _per_page, _limit
             if (key.startsWith('_')) return true;
             return String(item[key]) === String(value);
           });
@@ -409,14 +413,17 @@ export class JsonServer {
 
       // Handle pagination
       const pageParam = req.query._page;
-      const perPageParam = req.query._per_page;
+      const perPageParam = req.query._per_page || req.query._limit;
 
+      // Check if any pagination parameter is present
       if (pageParam !== undefined || perPageParam !== undefined) {
-        const page = pageParam ? parseInt(pageParam as string) : 1;
-        const perPage = perPageParam ? parseInt(perPageParam as string) : 10;
+        // Convert to integers with defaults if parsing fails
+        const page = pageParam ? Math.max(1, parseInt(pageParam as string) || 1) : 1;
+        const perPage = perPageParam ? Math.max(1, parseInt(perPageParam as string) || 10) : 10;
 
         // Apply pagination and return the paginated result
-        return res.json(this.getPaginatedData(filteredData, page, perPage));
+        const paginatedData = this.getPaginatedData(filteredData, page, perPage);
+        return res.json(paginatedData);
       }
 
       res.json(filteredData);
