@@ -165,7 +165,7 @@ export class JsonServer {
    * @param collection - Data collection to paginate
    * @param page - Current page number (default: 1)
    * @param perPage - Items per page (default: 10)
-   * @returns Object with pagination metadata and data
+   * @returns Paginated data with metadata
    */
   private getPaginatedData(
     collection: any[],
@@ -173,20 +173,38 @@ export class JsonServer {
     perPage: number = 10
   ): Record<string, any> {
     // Ensure valid page and perPage values
-    page = Math.max(1, page);
-    perPage = Math.max(1, perPage);
-    
+    page = Math.max(1, parseInt(String(page)) || 1);
+    perPage = Math.max(1, parseInt(String(perPage)) || 10);
+
     const total = collection.length;
+    const totalPages = Math.ceil(total / perPage);
     const start = (page - 1) * perPage;
     const end = Math.min(start + perPage, total);
+
+    // Get the data slice for the current page
     const data = collection.slice(start, end);
 
-    const paginationMeta = this.createPaginationMetadata(total, page, perPage);
-
     return {
-      ...paginationMeta,
       data,
+      first: 1,
+      prev: page > 1 ? page - 1 : null,
+      next: page < totalPages ? page + 1 : null,
+      last: totalPages || 1,
+      pages: totalPages || 1,
+      items: total,
     };
+  }
+
+  /**
+   * Checks if pagination should continue based on current page and total items
+   *
+   * @param currentPage - Current page number
+   * @param pageSize - Number of items per page
+   * @param totalItems - Total number of items in the collection
+   * @returns Boolean indicating if there are more pages
+   */
+  continueToIterate(currentPage: number, pageSize: number, totalItems: number): boolean {
+    return currentPage * pageSize < totalItems;
   }
 
   /**
@@ -205,51 +223,32 @@ export class JsonServer {
     if (!this.db[resourceName]) {
       return {
         data: [],
-        pagination: {
-          currentPage: page,
-          pageSize,
-          totalItems: 0,
-          totalPages: 0,
-          hasMore: false,
-        },
+        first: 1,
+        prev: null,
+        next: null,
+        last: 1,
+        pages: 1,
+        items: 0,
       };
     }
 
     const collection = this.db[resourceName];
     const totalItems = collection.length;
-    const totalPages = Math.ceil(totalItems / pageSize);
+
+    // Ensure page and pageSize are valid numbers
+    page = Math.max(1, parseInt(String(page), 10) || 1);
+    pageSize = Math.max(1, parseInt(String(pageSize), 10) || 10);
 
     const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-
+    const end = Math.min(start + pageSize, totalItems);
     const data = collection.slice(start, end);
 
+    const paginationMeta = this.createPaginationMetadata(totalItems, page, pageSize);
+
     return {
-      data,
-      pagination: {
-        currentPage: page,
-        pageSize,
-        totalItems,
-        totalPages,
-        hasMore: this.continueToIterate(page, pageSize, totalItems),
-      },
+      data: data,
+      ...paginationMeta,
     };
-  }
-
-  /**
-   * Determines if pagination should continue to next page
-   *
-   * @param currentPage - Current page number
-   * @param pageSize - Items per page
-   * @param totalItems - Total number of items
-   * @returns Boolean indicating if there are more pages to iterate
-   */
-  continueToIterate(currentPage: number, pageSize: number, totalItems: number): boolean {
-    // Calculate total number of pages
-    const totalPages = Math.ceil(totalItems / pageSize);
-
-    // Check if current page is less than total pages
-    return currentPage < totalPages;
   }
 
   /**
@@ -421,9 +420,16 @@ export class JsonServer {
         const page = pageParam ? Math.max(1, parseInt(pageParam as string) || 1) : 1;
         const perPage = perPageParam ? Math.max(1, parseInt(perPageParam as string) || 10) : 10;
 
-        // Apply pagination and return the paginated result
-        const paginatedData = this.getPaginatedData(filteredData, page, perPage);
-        return res.json(paginatedData);
+        // Get paginated data with proper metadata using the getPaginatedData method
+        const paginatedResult = this.getPaginatedData(filteredData, page, perPage);
+
+        // Set pagination headers
+        res.setHeader('X-Total-Count', paginatedResult.items.toString());
+        res.setHeader('X-Total-Pages', paginatedResult.pages.toString());
+        res.setHeader('Access-Control-Expose-Headers', 'X-Total-Count, X-Total-Pages');
+
+        // Return the paginated result
+        return res.json(paginatedResult);
       }
 
       res.json(filteredData);
