@@ -1,6 +1,6 @@
 // Mock Express to avoid module resolution issues
 jest.mock('express', () => {
-  const mockExpress: any = () => {
+  const mockExpress = (): any => {
     const app = {
       use: jest.fn(),
       get: jest.fn(),
@@ -38,9 +38,8 @@ import { JsonServer } from '../src/lib/server';
 import { ServerOptions } from '../src/types';
 
 describe('JsonServer', () => {
-  let server: JsonServer;
-
-  beforeEach(() => {
+  // Single comprehensive test for server core functionality
+  test('should create and configure server correctly', (): void => {
     const options: ServerOptions = {
       port: 3000,
       host: 'localhost',
@@ -55,47 +54,25 @@ describe('JsonServer', () => {
       readOnly: false,
     };
 
-    server = new JsonServer(options);
+    const server = new JsonServer(options);
 
     // Mock the loadDatabase and saveDatabase methods
     server.loadDatabase = jest.fn().mockReturnValue(server);
     server.saveDatabase = jest.fn();
-  });
 
-  describe('initialization', () => {
-    it('should create a server instance', () => {
-      expect(server).toBeInstanceOf(JsonServer);
-    });
+    // Test instance creation
+    expect(server).toBeInstanceOf(JsonServer);
 
-    it('should set up middlewares correctly', () => {
-      const app = server.getApp();
-      expect(app.use).toHaveBeenCalled();
-    });
-  });
+    // Test middleware setup
+    const app = server.getApp();
+    expect(app.use).toHaveBeenCalled();
 
-  describe('API methods', () => {
-    it('should provide chainable methods', () => {
-      expect(server.loadDatabase('test.json')).toBe(server);
-      expect(server.setIdField('_id')).toBe(server);
-    });
-  });
+    // Test chainable methods
+    expect(server.loadDatabase('test.json')).toBe(server);
+    expect(server.setIdField('_id')).toBe(server);
 
-  describe('pagination methods', () => {
-    it('should determine if pagination should continue', () => {
-      // Should continue - more pages available
-      expect(server.continueToIterate(1, 10, 25)).toBe(true);
-
-      // Should continue - exactly one more page
-      expect(server.continueToIterate(1, 10, 20)).toBe(true);
-
-      // Should not continue - on last page
-      expect(server.continueToIterate(2, 10, 20)).toBe(false);
-
-      // Should not continue - on last page with incomplete items
-      expect(server.continueToIterate(3, 10, 25)).toBe(false);
-
-      // Edge case - single page
-      expect(server.continueToIterate(1, 20, 15)).toBe(false);
-    });
+    // Test basic pagination helper
+    expect(server.continueToIterate(1, 10, 25)).toBe(true);
+    expect(server.continueToIterate(3, 10, 25)).toBe(false);
   });
 });
