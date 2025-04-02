@@ -11,6 +11,7 @@ A TypeScript implementation of json-server with additional features and comprehe
 - Full TypeScript support with type definitions
 - RESTful API endpoints from a JSON file or JavaScript object
 - Configurable routes
+- API prefix support (`/api/*` for all routes)
 - Support for multiple package managers (npm, yarn, pnpm, bun)
 - CORS support
 - Delay simulation for network latency testing
@@ -178,6 +179,7 @@ Options:
   --read-only, --ro  Allow only GET requests                  [default: false]
   --no-cors, --nc    Disable CORS                             [default: false]
   --no-gzip, --ng    Disable GZIP compression                 [default: false]
+  --enable-api-prefix, --api  Enable /api/* prefix            [default: false]
   --delay, -d        Add delay to responses (ms)                       [number]
   --id, -i           Set database id field                     [default: "id"]
   --foreignKeySuffix Set foreign key suffix               [default: "_id"]
@@ -203,6 +205,50 @@ GET /posts?_sort=title&_order=asc
 GET /posts?_sort=title&_order=desc
 ```
 
+## API Prefix
+
+The API prefix feature allows you to access all your resources with an `/api` prefix. This is useful when:
+
+- You want to make your mock API feel more like a real backend
+- You need to differentiate API routes from other routes in your application
+- You're working with frontend frameworks that expect API routes to start with `/api`
+
+### Using API Prefix with CLI
+
+Enable the API prefix feature using the `--enable-api-prefix` (or `-api` shorthand) flag:
+
+```bash
+json-server db.json --enable-api-prefix
+```
+
+This allows you to access resources through both standard and API-prefixed routes:
+
+```
+# Standard routes still work
+GET /posts
+GET /posts/1
+
+# API-prefixed routes also work
+GET /api/posts
+GET /api/posts/1
+```
+
+### Using API Prefix Programmatically
+
+```typescript
+import { create } from '@webmasterdevlin/json-server';
+
+const server = create({
+  port: 3000,
+  enableApiPrefix: true, // Enable the API prefix feature
+});
+
+server.loadDatabase('./db.json');
+server.start().then(() => {
+  console.log('Server running with API prefix support');
+});
+```
+
 ## Programmatic Usage
 
 ```typescript
@@ -220,6 +266,7 @@ const server = create({
   host: 'localhost',
   readOnly: false, // Allow all HTTP methods
   delay: 1000, // Add 1s delay to responses
+  enableApiPrefix: true, // Enable /api/* prefix for all routes
 });
 
 // Create a custom route

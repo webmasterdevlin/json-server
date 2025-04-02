@@ -4,13 +4,19 @@
  * This module provides a Deno-compatible interface for json-server.
  * It can be used both as a CLI and as a programmatic API from Deno scripts.
  *
+ * Features include:
+ * - TypeScript-powered JSON Server with API prefix support
+ * - RESTful API with custom routes
+ * - Configurable settings for CORS, delay, read-only mode
+ * - API prefix (/api/*) routing via the enableApiPrefix option
+ *
  * @example
  * // Run from command line:
- * // deno run --allow-read --allow-write --allow-net --allow-run mod.ts db.json --port 3001
+ * // deno run --allow-read --allow-write --allow-net --allow-run mod.ts db.json --port 3001 --enable-api-prefix
  *
  * // Import programmatically:
  * // import { create } from "./mod.ts";
- * // const server = create({ port: 3000 });
+ * // const server = create({ port: 3000, enableApiPrefix: true });
  * // server.loadDatabase("./db.json");
  * // await server.start();
  *
@@ -43,6 +49,7 @@ Options:
   --id, -i           Set database id field                     [default: "id"]
   --read-only, --ro  Allow only GET requests                  [default: false]
   --no-cors, --nc    Disable CORS                             [default: false]
+  --enable-api-prefix, --api  Enable /api/* prefix            [default: false]
   --quiet, -q        Suppress log messages                    [default: false]
   --help, -h         Show help                                        [boolean]
   --version, -v      Show version                                     [boolean]
@@ -51,6 +58,7 @@ Examples:
   deno run --allow-read --allow-write --allow-net --allow-run mod.ts db.json
   deno run --allow-read --allow-write --allow-net --allow-run mod.ts db.json --port 3001
   deno run --allow-read --allow-write --allow-net --allow-run mod.ts db.json --delay 500
+  deno run --allow-read --allow-write --allow-net --allow-run mod.ts db.json --enable-api-prefix
   `);
 }
 
@@ -71,6 +79,7 @@ if (import.meta.main) {
       q: 'quiet',
       nc: 'no-cors',
       ro: 'read-only',
+      api: 'enable-api-prefix',
     },
   });
 
@@ -129,6 +138,7 @@ if (import.meta.main) {
     delay: args.delay || 0,
     quiet: args.quiet || false,
     readOnly: args['read-only'] || false,
+    enableApiPrefix: args['enable-api-prefix'] || false,
   };
 
   try {

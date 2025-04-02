@@ -37,6 +37,13 @@ export interface ServerOptions {
 
   /** Whether to make the server read-only (no POST, PUT, PATCH, DELETE) */
   readOnly: boolean;
+
+  /**
+   * Whether to enable API prefix (/api/*) for all routes
+   * When enabled, all routes can be accessed both directly (/users)
+   * and with an /api prefix (/api/users)
+   */
+  enableApiPrefix: boolean;
 }
 
 /**
@@ -91,6 +98,12 @@ export interface CliArgs {
 
   /** Path to file for database snapshots */
   snapshot?: string;
+
+  /**
+   * Whether to enable API prefix feature
+   * When enabled, all routes can be accessed with /api/* prefix
+   */
+  'enable-api-prefix'?: boolean;
 
   /** Additional, unknown command line arguments */
   [key: string]: any;

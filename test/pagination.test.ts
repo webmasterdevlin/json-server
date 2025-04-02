@@ -38,6 +38,7 @@ describe('Pagination Tests', () => {
       delay: 0,
       quiet: true,
       readOnly: false,
+      enableApiPrefix: false,
     };
 
     // Create a server instance for testing

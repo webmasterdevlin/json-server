@@ -7,6 +7,13 @@
  * It parses command line arguments and starts a server instance
  * with the specified configuration.
  *
+ * The CLI supports several features including:
+ * - Database loading from local or remote files
+ * - Custom routes and middleware
+ * - API prefix support (/api/* routes)
+ * - Delay simulation for network latency testing
+ * - Read-only mode for safe demonstrations
+ *
  * @author webmasterdevlin
  * @copyright MIT License
  */
@@ -44,6 +51,7 @@ function parseArgs(): CliArgs {
     ro: 'read-only',
     nc: 'no-cors',
     ng: 'no-gzip',
+    api: 'enable-api-prefix', // Short alias for enabling API prefix
   };
 
   // Parse command line arguments with minimist
@@ -106,6 +114,7 @@ Options:
   --read-only, --ro  Allow only GET requests                  [default: false]
   --no-cors, --nc    Disable CORS                             [default: false]
   --no-gzip, --ng    Disable GZIP compression                 [default: false]
+  --enable-api-prefix, --api  Enable /api/* prefix            [default: false]
   --delay, -d        Add delay to responses (ms)                       [number]
   --id, -i           Set database id field                     [default: "id"]
   --foreignKeySuffix Set foreign key suffix               [default: "_id"]
@@ -121,6 +130,7 @@ Examples:
   json-server db.json --routes routes.js
   json-server db.json --delay 1000
   json-server db.json --id _id
+  json-server db.json --enable-api-prefix     # Enable /api/* routes
   json-server http://example.com/db.json
 
 For more information, visit:
@@ -177,6 +187,7 @@ async function main(): Promise<void> {
       delay: cliArgs.delay || 0,
       quiet: cliArgs.quiet || false,
       readOnly: cliArgs['read-only'] || false,
+      enableApiPrefix: cliArgs['enable-api-prefix'] || false, // Enable API prefix feature if specified
     };
 
     // Create and configure the server

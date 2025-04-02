@@ -5,6 +5,12 @@
  * It provides factory functions, classes, types, and utilities
  * for creating and managing JSON API servers.
  *
+ * The package includes features such as:
+ * - RESTful API with TypeScript support
+ * - Custom route configuration
+ * - API prefix support (/api/* for all routes)
+ * - CORS, read-only mode, and delay simulation
+ *
  * @author webmasterdevlin
  * @copyright MIT License
  */
@@ -19,7 +25,13 @@ import {
   HttpMethod,
   RouteHandler,
 } from './types';
-import { delayMiddleware, corsMiddleware, readOnlyMiddleware, CorsConfig } from './middleware';
+import {
+  delayMiddleware,
+  corsMiddleware,
+  readOnlyMiddleware,
+  apiPrefixMiddleware,
+  CorsConfig,
+} from './middleware';
 import * as utils from './utils/utils';
 
 /**
@@ -34,7 +46,8 @@ import * as utils from './utils/utils';
  * const server = create({
  *   port: 3001,
  *   delay: 500,
- *   readOnly: true
+ *   readOnly: true,
+ *   enableApiPrefix: true // Enable /api/* prefix for all routes
  * });
  *
  * // Load database and start server
@@ -58,6 +71,7 @@ export function create(options: Partial<ServerOptions> = {}): JsonServer {
     delay: options.delay || 0,
     quiet: options.quiet || false,
     readOnly: options.readOnly || false,
+    enableApiPrefix: options.enableApiPrefix || false,
   };
 
   return createServer(serverOptions);
@@ -82,6 +96,7 @@ export {
   delayMiddleware,
   corsMiddleware,
   readOnlyMiddleware,
+  apiPrefixMiddleware,
   CorsConfig,
 
   // Utilities

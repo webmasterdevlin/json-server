@@ -5,7 +5,12 @@ import bodyParser from 'body-parser';
 import morgan from 'morgan';
 import serveStatic from 'serve-static';
 import { ServerOptions, Database, RoutesConfig, HttpMethod } from '../types';
-import { corsMiddleware, delayMiddleware, readOnlyMiddleware } from '../middleware';
+import {
+  corsMiddleware,
+  delayMiddleware,
+  readOnlyMiddleware,
+  apiPrefixMiddleware,
+} from '../middleware';
 import { fileExists, loadJsonFile, saveJsonFile, parseRoutesFile } from '../utils/utils';
 
 /**
@@ -66,6 +71,15 @@ export class JsonServer {
     if (this.options.bodyParser) {
       this.app.use(bodyParser.json({ limit: '10mb' }));
       this.app.use(bodyParser.urlencoded({ extended: false, limit: '10mb' }));
+    }
+
+    // API Prefix middleware - allows accessing routes with /api/* prefix
+    // This enables both standard routes (/users) and prefixed routes (/api/users)
+    if (this.options.enableApiPrefix) {
+      this.app.use(apiPrefixMiddleware(this.options.enableApiPrefix));
+      if (!this.options.quiet) {
+        console.log('API prefix middleware enabled. Routes can be accessed with /api/* prefix.');
+      }
     }
 
     // Delay middleware for simulating network latency

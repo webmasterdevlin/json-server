@@ -32,6 +32,7 @@ jest.mock('../src/middleware', () => ({
   corsMiddleware: jest.fn(() => jest.fn()),
   delayMiddleware: jest.fn(() => jest.fn()),
   readOnlyMiddleware: jest.fn(() => jest.fn()),
+  apiPrefixMiddleware: jest.fn(() => jest.fn()),
 }));
 
 import { JsonServer } from '../src/lib/server';
@@ -52,6 +53,7 @@ describe('JsonServer', () => {
       delay: 0,
       quiet: true,
       readOnly: false,
+      enableApiPrefix: false,
     };
 
     const server = new JsonServer(options);
