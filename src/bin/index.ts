@@ -24,6 +24,14 @@ import fs from 'fs';
 import { createServer } from '../lib';
 import { CliArgs, ServerOptions } from '../types';
 import { fileExists } from '../utils/utils';
+import {
+  styles,
+  createHeader,
+  createBox,
+  formatList,
+  formatHelp,
+  formatError,
+} from '../utils/cli-styles';
 
 // Default server configuration
 const DEFAULT_PORT = 3000;
@@ -80,10 +88,22 @@ function showVersion(): void {
     const packageJsonPath = path.join(__dirname, '../../package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
-    console.log(`@webmasterdevlin/json-server v${packageJson.version}`);
+    console.log(
+      createBox(
+        '⚡️ @webmasterdevlin/json-server',
+        [
+          '',
+          `${styles.primary('Version:')} ${styles.highlight(packageJson.version)}`,
+          '',
+          `${styles.secondary('TypeScript-powered REST API mock server')}`,
+          '',
+        ],
+        'default'
+      )
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error reading package version:', errorMessage);
+    console.error(formatError('Version Error', `Error reading package version: ${errorMessage}`));
     process.exit(1);
   }
 }
@@ -92,50 +112,46 @@ function showVersion(): void {
  * Display help information with usage examples
  */
 function showHelp(): void {
-  console.log(`
-╭───────────────────────────────────────────────────────────────────────────╮
-│                                                                           │
-│                   @webmasterdevlin/json-server CLI                        │
-│                                                                           │
-╰───────────────────────────────────────────────────────────────────────────╯
+  // Create sections for the help display
+  const sections: Record<string, string> = {
+    Usage: `${styles.command('json-server')} ${styles.info('[options]')} ${styles.highlight('<source>')}`,
 
-A TypeScript implementation of json-server with additional features.
+    Options: formatList([
+      `${styles.key('--port, -p')}         ${styles.value('Set port')}${styles.muted('                                  [default: 3000]')}`,
+      `${styles.key('--host, -H')}         ${styles.value('Set host')}${styles.muted('                          [default: "localhost"]')}`,
+      `${styles.key('--watch, -w')}        ${styles.value('Watch for changes')}${styles.muted('                        [default: false]')}`,
+      `${styles.key('--routes, -r')}       ${styles.value('Path to routes file')}${styles.muted('                               [string]')}`,
+      `${styles.key('--middlewares, -m')}  ${styles.value('Path to middlewares files')}${styles.muted('                          [array]')}`,
+      `${styles.key('--static, -s')}       ${styles.value('Path to static files')}${styles.muted('                               [array]')}`,
+      `${styles.key('--read-only, --ro')}  ${styles.value('Allow only GET requests')}${styles.muted('                  [default: false]')}`,
+      `${styles.key('--no-cors, --nc')}    ${styles.value('Disable CORS')}${styles.muted('                             [default: false]')}`,
+      `${styles.key('--no-gzip, --ng')}    ${styles.value('Disable GZIP compression')}${styles.muted('                 [default: false]')}`,
+      `${styles.key('--enable-api-prefix, --api')}  ${styles.value('Enable /api/* prefix')}${styles.muted('            [default: false]')}`,
+      `${styles.key('--delay, -d')}        ${styles.value('Add delay to responses (ms)')}${styles.muted('                       [number]')}`,
+      `${styles.key('--id, -i')}           ${styles.value('Set database id field')}${styles.muted('                     [default: "id"]')}`,
+      `${styles.key('--foreignKeySuffix')} ${styles.value('Set foreign key suffix')}${styles.muted('               [default: "_id"]')}`,
+      `${styles.key('--quiet, -q')}        ${styles.value('Suppress log messages')}${styles.muted('                    [default: false]')}`,
+      `${styles.key('--help, -h')}         ${styles.value('Show help')}${styles.muted('                                        [boolean]')}`,
+      `${styles.key('--version, -v')}      ${styles.value('Show version')}${styles.muted('                                     [boolean]')}`,
+    ]),
 
-Usage:
-  json-server [options] <source>
+    Examples: formatList([
+      `${styles.command('json-server')} ${styles.highlight('db.json')}`,
+      `${styles.command('json-server')} ${styles.highlight('db.json')} ${styles.info('--port 3001')}`,
+      `${styles.command('json-server')} ${styles.highlight('db.json')} ${styles.info('--watch')}`,
+      `${styles.command('json-server')} ${styles.highlight('db.json')} ${styles.info('--routes routes.json')}`,
+      `${styles.command('json-server')} ${styles.highlight('db.json')} ${styles.info('--routes routes.js')}`,
+      `${styles.command('json-server')} ${styles.highlight('db.json')} ${styles.info('--delay 1000')}`,
+      `${styles.command('json-server')} ${styles.highlight('db.json')} ${styles.info('--id _id')}`,
+      `${styles.command('json-server')} ${styles.highlight('db.json')} ${styles.info('--enable-api-prefix')}     ${styles.muted('# Enable /api/* routes')}`,
+      `${styles.command('json-server')} ${styles.highlight('http://example.com/db.json')}`,
+    ]),
 
-Options:
-  --port, -p         Set port                                  [default: 3000]
-  --host, -H         Set host                          [default: "localhost"]
-  --watch, -w        Watch for changes                        [default: false]
-  --routes, -r       Path to routes file                               [string]
-  --middlewares, -m  Path to middlewares files                          [array]
-  --static, -s       Path to static files                               [array]
-  --read-only, --ro  Allow only GET requests                  [default: false]
-  --no-cors, --nc    Disable CORS                             [default: false]
-  --no-gzip, --ng    Disable GZIP compression                 [default: false]
-  --enable-api-prefix, --api  Enable /api/* prefix            [default: false]
-  --delay, -d        Add delay to responses (ms)                       [number]
-  --id, -i           Set database id field                     [default: "id"]
-  --foreignKeySuffix Set foreign key suffix               [default: "_id"]
-  --quiet, -q        Suppress log messages                    [default: false]
-  --help, -h         Show help                                        [boolean]
-  --version, -v      Show version                                     [boolean]
+    'More Information': `${styles.url('https://github.com/webmasterdevlin/json-server')}`,
+  };
 
-Examples:
-  json-server db.json
-  json-server db.json --port 3001
-  json-server db.json --watch
-  json-server db.json --routes routes.json
-  json-server db.json --routes routes.js
-  json-server db.json --delay 1000
-  json-server db.json --id _id
-  json-server db.json --enable-api-prefix     # Enable /api/* routes
-  json-server http://example.com/db.json
-
-For more information, visit:
-https://github.com/webmasterdevlin/json-server
-  `);
+  // Display the help sections
+  console.log(formatHelp(sections));
 }
 
 /**
@@ -158,19 +174,39 @@ async function main(): Promise<void> {
     const cliArgs = parseArgs();
     const args = process.argv.slice(2);
 
+    // Show welcome banner
+    if (!cliArgs.quiet) {
+      console.log(createHeader());
+    }
+
     // Get database source
     const source = getSourcePath(args);
     if (!source) {
-      console.error('Error: No database source provided');
+      console.error(
+        formatError(
+          'Missing Source',
+          'No database source provided.',
+          'Please specify a JSON file or URL to use as database.'
+        )
+      );
       showHelp();
       process.exit(1);
     }
 
     // Check if source file exists (if it's a local file)
     if (source.startsWith('http://') || source.startsWith('https://')) {
-      console.log(`Using remote database: ${source}`);
+      console.log(
+        styles.icons.database,
+        styles.info(`Using remote database: ${styles.url(source)}`)
+      );
     } else if (!fileExists(source)) {
-      console.error(`Error: Database file not found: ${source}`);
+      console.error(
+        formatError(
+          'Database Error',
+          `Database file not found: ${source}`,
+          'Make sure the file exists and you have permissions to read it.'
+        )
+      );
       process.exit(1);
     }
 
@@ -201,9 +237,12 @@ async function main(): Promise<void> {
     // Load custom routes if specified
     if (cliArgs.routes) {
       if (!fileExists(cliArgs.routes)) {
-        console.warn(`Warning: Routes file not found: ${cliArgs.routes}`);
+        console.warn(
+          styles.icons.warning,
+          styles.warning(`Routes file not found: ${styles.highlight(cliArgs.routes)}`)
+        );
       } else {
-        server.loadRoutes(cliArgs.routes);
+        await server.loadRoutes(cliArgs.routes);
       }
     }
 
@@ -219,7 +258,7 @@ async function main(): Promise<void> {
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error starting server:', errorMessage);
+    console.error(formatError('Server Error', `Error starting server: ${errorMessage}`));
     process.exit(1);
   }
 }
@@ -235,37 +274,49 @@ function setupFileWatcher(dbPath: string, server: any): void {
     // Use Node's fs.watch API to monitor file changes
     fs.watch(dbPath, (eventType) => {
       if (eventType === 'change') {
-        console.log(`Database file changed: ${dbPath}`);
+        console.log(
+          styles.icons.watch,
+          styles.info(`${styles.highlight(dbPath)} changed, reloading database...`)
+        );
         try {
           server.loadDatabase(dbPath);
-          console.log('Database reloaded');
+          console.log(styles.icons.success, styles.success('Database reloaded successfully'));
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
-          console.error('Error reloading database:', errorMessage);
+          console.error(
+            styles.icons.error,
+            styles.error(`Error reloading database: ${errorMessage}`)
+          );
         }
       }
     });
 
-    console.log(`Watching for changes: ${dbPath}`);
+    console.log(
+      styles.icons.watch,
+      styles.info(`Watching for changes: ${styles.highlight(dbPath)}`)
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error setting up file watcher:', errorMessage);
+    console.error(
+      styles.icons.error,
+      styles.error(`Error setting up file watcher: ${errorMessage}`)
+    );
   }
 }
 
 // Handle process termination gracefully
 process.on('SIGINT', () => {
-  console.log('\nReceived SIGINT. Shutting down...');
+  console.log('\n' + styles.icons.stop, styles.info('Received SIGINT. Shutting down...'));
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  console.log('\nReceived SIGTERM. Shutting down...');
+  console.log('\n' + styles.icons.stop, styles.info('Received SIGTERM. Shutting down...'));
   process.exit(0);
 });
 
 // Start the application
 main().catch((error) => {
-  console.error('Fatal error:', error.message);
+  console.error(formatError('Fatal Error', error.message));
   process.exit(1);
 });

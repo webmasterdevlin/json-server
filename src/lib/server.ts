@@ -12,6 +12,13 @@ import {
   apiPrefixMiddleware,
 } from '../middleware';
 import { fileExists, loadJsonFile, saveJsonFile, parseRoutesFile } from '../utils/utils';
+import {
+  styles,
+  createServerBanner,
+  formatDatabaseSummary,
+  formatRouteRegistration,
+  formatError,
+} from '../utils/cli-styles';
 
 /**
  * Main JsonServer class that handles all server functionality
@@ -78,17 +85,32 @@ export class JsonServer {
     if (this.options.enableApiPrefix) {
       this.app.use(apiPrefixMiddleware(this.options.enableApiPrefix));
       if (!this.options.quiet) {
-        console.log('API prefix middleware enabled. Routes can be accessed with /api/* prefix.');
+        console.log(
+          styles.icons.api,
+          styles.info('API prefix middleware enabled. Routes can be accessed with /api/* prefix.')
+        );
       }
     }
 
     // Delay middleware for simulating network latency
     if (this.options.delay > 0) {
       this.app.use(delayMiddleware(this.options.delay));
+      if (!this.options.quiet) {
+        console.log(
+          styles.icons.time,
+          styles.info(`Response delay: ${styles.highlight(`${this.options.delay}ms`)}`)
+        );
+      }
     }
 
     // Read-only middleware to prevent data modifications
     this.app.use(readOnlyMiddleware(this.options.readOnly) as RequestHandler);
+    if (this.options.readOnly && !this.options.quiet) {
+      console.log(
+        styles.icons.warning,
+        styles.warning('Read-only mode enabled. Write operations are disabled.')
+      );
+    }
 
     // Serve static files if configured
     this.setupStaticFiles();
@@ -116,7 +138,10 @@ export class JsonServer {
 
     statics.forEach((staticPath) => {
       if (!fs.existsSync(path.resolve(staticPath))) {
-        console.warn(`Warning: Static path not found: ${staticPath}`);
+        console.warn(
+          styles.icons.warning,
+          styles.warning(`Static path not found: ${styles.highlight(staticPath)}`)
+        );
         return;
       }
 
@@ -127,7 +152,10 @@ export class JsonServer {
       );
 
       if (!this.options.quiet) {
-        console.log(`Serving static files from: ${staticPath}`);
+        console.log(
+          styles.icons.info,
+          styles.info(`Serving static files from: ${styles.highlight(staticPath)}`)
+        );
       }
     });
   }
@@ -142,7 +170,10 @@ export class JsonServer {
       this.options.middlewares.forEach((middleware, index) => {
         this.app.use(middleware);
         if (!this.options.quiet) {
-          console.log(`Applied custom middleware #${index + 1}`);
+          console.log(
+            styles.icons.config,
+            styles.info(`Applied custom middleware #${styles.highlight((index + 1).toString())}`)
+          );
         }
       });
     }
@@ -286,9 +317,7 @@ export class JsonServer {
         // Log number of collections and total items
         const collections = Object.keys(this.db);
         const totalItems = collections.reduce((sum, coll) => sum + this.db[coll].length, 0);
-        console.log(
-          `Loaded ${collections.length} collections with ${totalItems} items from ${this.dbPath}`
-        );
+        console.log(formatDatabaseSummary(this.dbPath, collections.length, totalItems));
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -312,7 +341,10 @@ export class JsonServer {
       saveJsonFile(this.dbPath, this.db);
 
       if (!this.options.quiet) {
-        console.log(`Database saved to ${this.dbPath}`);
+        console.log(
+          styles.icons.success,
+          styles.success(`Database saved to ${styles.highlight(this.dbPath)}`)
+        );
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -330,7 +362,10 @@ export class JsonServer {
     this.idField = idField;
 
     if (!this.options.quiet) {
-      console.log(`Using '${idField}' as the ID field`);
+      console.log(
+        styles.icons.config,
+        styles.info(`Using ${styles.highlight(idField)} as the ID field`)
+      );
     }
 
     return this;
@@ -350,11 +385,16 @@ export class JsonServer {
 
       if (!this.options.quiet) {
         const routeCount = Object.keys(this.routes).length;
-        console.log(`Loaded ${routeCount} custom routes from ${fullPath}`);
+        console.log(
+          styles.icons.routes,
+          styles.info(
+            `Loaded ${styles.highlight(routeCount.toString())} custom routes from ${styles.highlight(fullPath)}`
+          )
+        );
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`Failed to load routes: ${errorMessage}`);
+      console.error(styles.icons.error, styles.error(`Failed to load routes: ${errorMessage}`));
     }
 
     return this;
@@ -380,7 +420,7 @@ export class JsonServer {
     this.routes[routePath][method.toLowerCase()] = handler;
 
     if (!this.options.quiet) {
-      console.log(`Added custom ${method.toUpperCase()} route: ${routePath}`);
+      console.log(formatRouteRegistration(method, routePath));
     }
 
     return this;
@@ -655,7 +695,10 @@ export class JsonServer {
         const routeMethod = method.toLowerCase() as 'get' | 'post' | 'put' | 'patch' | 'delete';
 
         if (typeof this.app[routeMethod] !== 'function') {
-          console.error(`Unsupported HTTP method: ${method}`);
+          console.error(
+            styles.icons.error,
+            styles.error(`Unsupported HTTP method: ${styles.highlight(method)}`)
+          );
           return;
         }
 
@@ -680,18 +723,14 @@ export class JsonServer {
           }) as RequestHandler);
 
           if (!this.options.quiet) {
-            console.log(
-              `Registered custom route: ${method.toUpperCase()} ${routePath} -> ${targetPath}`
-            );
+            console.log(formatRouteRegistration(method, routePath, targetPath));
           }
         } else if (typeof handler === 'function') {
           // Function handler: direct route handler
           this.app[routeMethod](routePath, handler as RequestHandler);
 
           if (!this.options.quiet) {
-            console.log(
-              `Registered custom route with handler function: ${method.toUpperCase()} ${routePath}`
-            );
+            console.log(formatRouteRegistration(method, routePath));
           }
         }
       });
@@ -723,7 +762,7 @@ export class JsonServer {
 
     // Handle server errors (500)
     this.app.use(((err: Error, req: Request, res: Response, _next: NextFunction) => {
-      console.error('Server error:', err);
+      console.error(styles.icons.error, styles.error('Server error:'), err);
       res.status(500).json({
         error: 'Internal server error',
         message: err.message || 'An unexpected error occurred',
@@ -735,18 +774,20 @@ export class JsonServer {
       try {
         const server = this.app.listen(this.options.port, this.options.host, () => {
           if (!this.options.quiet) {
-            console.log(`
-╭───────────────────────────────────────────╮
-│                                           │
-│   JSON Server is running                  │
-│                                           │
-│   URL: http://${this.options.host}:${this.options.port}          │
-│   Home: http://${this.options.host}:${this.options.port}/db       │
-│                                           │
-│   Type Ctrl+C to stop the server          │
-│                                           │
-╰───────────────────────────────────────────╯
-`);
+            // Create a settings object to display in the banner
+            const settings: Record<string, any> = {
+              'Read Only': this.options.readOnly ? 'Yes' : 'No',
+              'API Prefix': this.options.enableApiPrefix ? 'Enabled' : 'Disabled',
+              CORS: !this.options.noCors ? 'Enabled' : 'Disabled',
+            };
+
+            // Add delay if set
+            if (this.options.delay > 0) {
+              settings['Delay'] = `${this.options.delay}ms`;
+            }
+
+            // Show the beautiful server banner
+            console.log(createServerBanner(this.options.host, this.options.port, settings));
           }
           resolve(server);
         });
@@ -754,17 +795,21 @@ export class JsonServer {
         // Handle server close
         server.on('close', () => {
           if (!this.options.quiet) {
-            console.log('JSON Server has been stopped');
+            console.log(styles.icons.stop, styles.info('JSON Server has been stopped'));
           }
         });
 
         // Handle server errors
         server.on('error', (err) => {
           const errorMessage = err instanceof Error ? err.message : String(err);
+          const formattedError = formatError('Server Startup Failed', errorMessage);
+          console.error(formattedError);
           reject(new Error(`Failed to start server: ${errorMessage}`));
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
+        const formattedError = formatError('Server Error', errorMessage);
+        console.error(formattedError);
         reject(new Error(`Failed to start server: ${errorMessage}`));
       }
     });
