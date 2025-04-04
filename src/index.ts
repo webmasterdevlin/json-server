@@ -61,7 +61,7 @@ export function create(options: Partial<ServerOptions> = {}): JsonServer {
   // Apply default options
   const serverOptions: ServerOptions = {
     port: options.port || 3000,
-    host: options.host || 'localhost',
+    host: options.host || '0.0.0.0', // Changed from 'localhost' to '0.0.0.0' to allow external connections
     cors: options.cors !== undefined ? options.cors : true,
     static: options.static || [],
     middlewares: options.middlewares || [],

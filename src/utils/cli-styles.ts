@@ -143,9 +143,10 @@ export function createServerBanner(
   port: number,
   options: Record<string, any> = {}
 ): string {
+  // Create endpoints - keeping it simple regardless of host binding
   const endpoints = [
-    `${styles.url(`http://${host}:${port}`)} - API Root`,
-    `${styles.url(`http://${host}:${port}/db`)} - Full Database`,
+    `${styles.url(`http://localhost:${port}`)} - API Root`,
+    `${styles.url(`http://localhost:${port}/db`)} - Full Database`,
   ];
 
   const settings = Object.entries(options).map(

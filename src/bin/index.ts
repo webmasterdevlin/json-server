@@ -35,7 +35,7 @@ import {
 
 // Default server configuration
 const DEFAULT_PORT = 3000;
-const DEFAULT_HOST = 'localhost';
+const DEFAULT_HOST = '0.0.0.0'; // Changed from 'localhost' to '0.0.0.0' to allow external connections
 
 /**
  * Parse command line arguments into a structured object
