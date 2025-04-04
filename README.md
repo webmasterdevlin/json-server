@@ -6,8 +6,6 @@
 
 A TypeScript implementation of json-server with additional features and comprehensive TypeScript types.
 
-![JSON Server CLI Screenshot](https://raw.githubusercontent.com/webmasterdevlin/json-server/main/assets/cli-preview.png)
-
 ## Features
 
 - Full TypeScript support with type definitions
