@@ -6,6 +6,8 @@
 
 A TypeScript implementation of json-server with additional features and comprehensive TypeScript types.
 
+![JSON Server CLI Screenshot](https://raw.githubusercontent.com/webmasterdevlin/json-server/main/assets/cli-preview.png)
+
 ## Features
 
 - Full TypeScript support with type definitions
@@ -19,6 +21,7 @@ A TypeScript implementation of json-server with additional features and comprehe
 - Static file serving
 - Custom middleware support
 - Deno compatibility
+- **Beautiful and intuitive CLI interface with color-coded outputs**
 
 ## Installation
 
@@ -279,6 +282,75 @@ server.loadDatabase('./db.json');
 server.start().then(() => {
   console.log('JSON Server is running');
 });
+```
+
+## Beautiful CLI Experience
+
+One of the standout features of this implementation is the beautifully styled CLI interface, designed to make your development experience more enjoyable and informative.
+
+### Server Status Display
+
+When you start the server, you'll see a beautiful status banner with:
+
+```
+🚀 JSON Server is running
+
+ http://localhost:3000 - API Root
+ http://localhost:3000/db - Full Database
+
+ Read Only: No
+ API Prefix: Enabled
+ CORS: Enabled
+
+ ℹ️ Press Ctrl+C to stop the server
+```
+
+### Color-Coded Messages
+
+All CLI messages are color-coded for better readability:
+
+- 🟢 Green for success messages
+- 🔵 Blue for informational messages
+- 🟡 Yellow for warnings
+- 🔴 Red for errors
+
+### Visual Feedback for Key Events
+
+```bash
+💾 Database loaded: db.json (3 collections, 20 items)
+🔀 Loaded 4 custom routes from routes.json
+👀 Watching for changes: db.json
+```
+
+### Beautiful Help Display
+
+The help command (`json-server --help`) provides a well-organized and colorful display of all available options:
+
+```bash
+⚡️ @webmasterdevlin/json-server ⚡️
+A TypeScript-powered REST API mock server
+
+Usage:
+json-server [options] <source>
+
+Options:
+  --port, -p         Set port                                  [default: 3000]
+  --host, -H         Set host                          [default: "localhost"]
+  # ...more options...
+
+Examples:
+  json-server db.json
+  json-server db.json --port 3001
+  # ...more examples...
+```
+
+### Try It Yourself!
+
+Experience the beautiful CLI interface by installing and running json-server:
+
+```bash
+npm install @webmasterdevlin/json-server
+npx json-server db.json
 ```
 
 ## Development
