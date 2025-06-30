@@ -8,18 +8,20 @@ A TypeScript implementation of json-server with additional features and comprehe
 
 ## Features
 
-- Full TypeScript support with type definitions
-- RESTful API endpoints from a JSON file or JavaScript object
-- Configurable routes
-- API prefix support (`/api/*` for all routes)
-- Support for multiple package managers (npm, yarn, pnpm, bun)
-- CORS support
-- Delay simulation for network latency testing
-- Read-only mode
-- Static file serving
-- Custom middleware support
-- Deno compatibility
-- **Beautiful and intuitive CLI interface with color-coded outputs**
+- **Full TypeScript support** with comprehensive type definitions
+- **RESTful API endpoints** from a JSON file or JavaScript object
+- **API prefix support** - Access all routes with `/api/*` prefix for production-like experience
+- **Configurable routes** with custom route definitions
+- **Multiple package managers** support (npm, yarn, pnpm, bun)
+- **CORS support** with configurable options
+- **Delay simulation** for network latency testing
+- **Read-only mode** for safe demonstrations
+- **Static file serving** for frontend assets
+- **Custom middleware support** for advanced use cases
+- **Deno compatibility** for modern runtime support
+- **Beautiful CLI interface** with color-coded outputs and intuitive feedback
+- **Comprehensive pagination** with flexible query parameters
+- **Advanced filtering** and sorting capabilities
 
 ## Installation
 
@@ -67,12 +69,19 @@ Start the JSON Server:
 npx json-server db.json
 ```
 
+Or with API prefix support (enables `/api/*` routes):
+
+```bash
+npx json-server db.json --enable-api-prefix
+```
+
 Or use it from your package.json scripts:
 
 ```json
 {
   "scripts": {
-    "mock-api": "json-server db.json"
+    "mock-api": "json-server db.json",
+    "mock-api-with-prefix": "json-server db.json --enable-api-prefix"
   }
 }
 ```
@@ -82,6 +91,8 @@ Now if you go to http://localhost:3000/posts/1, you'll get:
 ```json
 { "id": 1, "title": "json-server", "author": "webmasterdevlin" }
 ```
+
+With API prefix enabled, you can also access the same data at http://localhost:3000/api/posts/1.
 
 ### API Usage
 
@@ -180,13 +191,35 @@ Options:
   --read-only, --ro  Allow only GET requests                  [default: false]
   --no-cors, --nc    Disable CORS                             [default: false]
   --no-gzip, --ng    Disable GZIP compression                 [default: false]
-  --enable-api-prefix, --api  Enable /api/* prefix            [default: false]
+  --enable-api-prefix, --api  Enable /api/* prefix routes     [default: false]
   --delay, -d        Add delay to responses (ms)                       [number]
   --id, -i           Set database id field                     [default: "id"]
   --foreignKeySuffix Set foreign key suffix               [default: "_id"]
   --quiet, -q        Suppress log messages                    [default: false]
   --help, -h         Show help                                        [boolean]
   --version, -v      Show version                                     [boolean]
+```
+
+### Example Commands
+
+```bash
+# Basic usage
+json-server db.json
+
+# With API prefix support
+json-server db.json --enable-api-prefix
+
+# Custom port with API prefix
+json-server db.json --port 3001 --api
+
+# With delay and API prefix
+json-server db.json --delay 1000 --enable-api-prefix
+
+# With custom routes and API prefix
+json-server db.json --routes routes.json --api
+
+# Read-only mode with API prefix
+json-server db.json --read-only --enable-api-prefix
 ```
 
 ## Filtering and Pagination
@@ -208,30 +241,84 @@ GET /posts?_sort=title&_order=desc
 
 ## API Prefix
 
-The API prefix feature allows you to access all your resources with an `/api` prefix. This is useful when:
+The API prefix feature allows you to access all your resources with an `/api` prefix, making your mock API feel more like a production backend. When enabled, both standard routes and API-prefixed routes work simultaneously.
 
-- You want to make your mock API feel more like a real backend
-- You need to differentiate API routes from other routes in your application
-- You're working with frontend frameworks that expect API routes to start with `/api`
+### Why Use API Prefix?
+
+- **Production-like experience**: Makes your mock API behave like a real backend with `/api` routes
+- **Frontend framework compatibility**: Works seamlessly with frameworks that expect API routes to start with `/api`
+- **Route organization**: Helps differentiate API routes from static file routes
+- **Development consistency**: Matches common backend API patterns
 
 ### Using API Prefix with CLI
 
-Enable the API prefix feature using the `--enable-api-prefix` (or `-api` shorthand) flag:
+Enable the API prefix feature using the `--enable-api-prefix` (or `--api` shorthand) flag:
 
 ```bash
 json-server db.json --enable-api-prefix
 ```
 
-This allows you to access resources through both standard and API-prefixed routes:
+**Both route styles work simultaneously:**
 
+```bash
+# Standard routes (still work)
+curl http://localhost:3000/posts
+curl http://localhost:3000/posts/1
+curl http://localhost:3000/db
+
+# API-prefixed routes (also work)
+curl http://localhost:3000/api/posts
+curl http://localhost:3000/api/posts/1
+curl http://localhost:3000/api/db
 ```
-# Standard routes still work
-GET /posts
-GET /posts/1
 
-# API-prefixed routes also work
+### All HTTP Methods Supported
+
+The API prefix works with all HTTP methods:
+
+```bash
+# GET requests
 GET /api/posts
 GET /api/posts/1
+
+# POST requests
+POST /api/posts
+Content-Type: application/json
+{"title": "New Post", "author": "John Doe"}
+
+# PUT requests
+PUT /api/posts/1
+Content-Type: application/json
+{"id": 1, "title": "Updated Post", "author": "John Doe"}
+
+# PATCH requests
+PATCH /api/posts/1
+Content-Type: application/json
+{"title": "Partially Updated Post"}
+
+# DELETE requests
+DELETE /api/posts/1
+```
+
+### Query Parameters and Pagination
+
+All query parameters work with the API prefix:
+
+```bash
+# Filtering
+GET /api/posts?author=webmasterdevlin
+GET /api/posts?title=json-server&author=webmasterdevlin
+
+# Pagination
+GET /api/posts?_page=1&_limit=10
+GET /api/posts?_page=2&_limit=5
+
+# Sorting
+GET /api/posts?_sort=title&_order=asc
+GET /api/posts?_sort=id&_order=desc
+
+# Pagination endpoint
+GET /api/posts/paginate?_page=1&_limit=10
 ```
 
 ### Using API Prefix Programmatically
@@ -247,10 +334,49 @@ const server = create({
 server.loadDatabase('./db.json');
 server.start().then(() => {
   console.log('Server running with API prefix support');
+  console.log('Access your API at:');
+  console.log('- http://localhost:3000/posts (standard)');
+  console.log('- http://localhost:3000/api/posts (with prefix)');
 });
 ```
 
+### Example with Custom Routes
+
+When using custom routes with API prefix enabled:
+
+**routes.json:**
+
+```json
+{
+  "/api/profile": {
+    "GET": "/users/1"
+  },
+  "/api/featured-post": {
+    "GET": "/posts/1"
+  },
+  "/api/users/:id/posts": {
+    "GET": "/posts?userId=:id"
+  }
+}
+```
+
+**Start server:**
+
+```bash
+json-server db.json --routes routes.json --enable-api-prefix
+```
+
+**Access routes:**
+
+```bash
+curl http://localhost:3000/api/profile
+curl http://localhost:3000/api/featured-post
+curl http://localhost:3000/api/users/1/posts
+```
+
 ## Programmatic Usage
+
+### Basic Usage
 
 ```typescript
 import { create } from '@webmasterdevlin/json-server';
@@ -279,7 +405,28 @@ server.addRoute('/custom-route', 'GET', (req, res) => {
 server.loadDatabase('./db.json');
 server.start().then(() => {
   console.log('JSON Server is running');
+  console.log('Standard routes: http://localhost:3000/posts');
+  console.log('API routes: http://localhost:3000/api/posts');
 });
+```
+
+### Configuration Options
+
+```typescript
+interface ServerOptions {
+  port: number; // Server port (default: 3000)
+  host: string; // Server host (default: 'localhost')
+  cors: boolean; // Enable CORS (default: true)
+  static: string | string[]; // Static file paths
+  middlewares: RequestHandler[]; // Custom middlewares
+  bodyParser: boolean; // Enable body parsing (default: true)
+  noCors: boolean; // Disable CORS (default: false)
+  noGzip: boolean; // Disable gzip (default: false)
+  delay: number; // Response delay in ms (default: 0)
+  quiet: boolean; // Suppress logs (default: false)
+  readOnly: boolean; // Read-only mode (default: false)
+  enableApiPrefix: boolean; // Enable /api/* routes (default: false)
+}
 ```
 
 ## Beautiful CLI Experience
@@ -376,6 +523,50 @@ npm test
 
 # Build for production
 npm run build
+```
+
+## Real-World Examples
+
+### Frontend Development with API Prefix
+
+When developing a React/Vue/Angular application that will eventually connect to a backend API with `/api` routes:
+
+```bash
+# Start json-server with API prefix
+json-server db.json --enable-api-prefix --port 3001
+
+# Your frontend can now make requests to:
+# http://localhost:3001/api/users
+# http://localhost:3001/api/posts
+# http://localhost:3001/api/comments
+```
+
+**Frontend code example:**
+
+```javascript
+// This will work with both your mock server and production API
+const response = await fetch('/api/users');
+const users = await response.json();
+```
+
+### Testing Different Network Conditions
+
+```bash
+# Simulate slow network
+json-server db.json --api --delay 2000
+
+# Test with different delays
+json-server db.json --api --delay 500   # 500ms delay
+json-server db.json --api --delay 1500  # 1.5s delay
+```
+
+### Safe Demo Mode
+
+```bash
+# Read-only mode with API prefix for demos
+json-server db.json --api --read-only
+
+# Only GET requests will work, perfect for demonstrations
 ```
 
 ## Contributing
