@@ -99,7 +99,7 @@
   },
   "packageManager": "npm@10.2.4 || pnpm@8.15.4 || yarn@4.2.0 || bun@1.0.25",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "exports": {
     ".": {
